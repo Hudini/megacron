@@ -4,24 +4,15 @@ namespace Comparon\MegacronBundle\Command;
 
 use Comparon\MegacronBundle\Helper\TaskProcessorHelper;
 use Comparon\MegacronBundle\Model\TaskInterface;
-use Symfony\Component\Console\Command\Command;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class SchedulerCommand extends Command
+class SchedulerCommand extends ContainerAwareCommand
 {
-    /** @var string */
-    private $projectDir;
-
-    public function __construct(string $projectDir)
-    {
-        parent::__construct();
-        $this->projectDir = $projectDir;
-    }
-
-    protected function configure(): void
+    protected function configure()
     {
         $this
             ->setName('comparon:scheduler:run')
@@ -34,23 +25,30 @@ class SchedulerCommand extends Command
     /**
      * @param InputInterface $input
      * @param OutputInterface $output
-     * @throws \Exception
      */
-    protected function execute(InputInterface $input, OutputInterface $output): void
+    protected function execute(InputInterface $input, OutputInterface $output)
     {
         foreach ($this->getApplication()->all() as $command) {
             if ($command instanceof TaskInterface) {
                 $configs = $command->getTaskConfigurations();
+                $entityManager = null;
+                if ($this->getContainer()->has('doctrine')) {
+                        $entityManager = $this->getContainer()->get('doctrine')->getEntityManager();
+                }
                 foreach ($configs as $config) {
-                    (new TaskProcessorHelper($this->getBinDirPath(), $command, $config))->process();
+                    (new TaskProcessorHelper($this->getBinDirPath(), $command, $config, $entityManager))->process();
                 }
             }
         }
     }
 
-    private function getBinDirPath(): string
+    /**
+     * @return string
+     */
+    private function getBinDirPath()
     {
-        return $this->projectDir
+        return $this->getContainer()->get('kernel')->getRootDir()
+            . DIRECTORY_SEPARATOR . '..'
             . DIRECTORY_SEPARATOR  . 'bin'
             . DIRECTORY_SEPARATOR
         ;

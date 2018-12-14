@@ -2,6 +2,8 @@
 
 namespace Comparon\MegacronBundle\Model;
 
+use Comparon\MegacronBundle\Entity\MegaCronHistory;
+
 class TaskConfiguration
 {
     /** @var string */
@@ -14,32 +16,53 @@ class TaskConfiguration
      */
     private $withOverlapping = true;
 
+    /** @var bool */
+    private $persistHistory = false;
+
     /** @var string[] */
     private $parameters = [];
 
-    public function isWithOverlapping(): bool
+    /**
+     * @return bool
+     */
+    public function isWithOverlapping()
     {
         return $this->withOverlapping;
     }
 
-    public function setWithOverlapping(bool $withOverlapping): self
+    /**
+     * @param bool $withOverlapping
+     * @return $this
+     */
+    public function setWithOverlapping($withOverlapping)
     {
         $this->withOverlapping = $withOverlapping;
         return $this;
     }
 
-    public function getCronExpression(): ?string
+    /**
+     * @return string
+     */
+    public function getCronExpression()
     {
         return $this->cronExpression;
     }
 
-    public function setCronExpression(string $cronExpression): self
+    /**
+     * @param $cronExpression
+     * @return $this
+     */
+    public function setCronExpression($cronExpression)
     {
         $this->cronExpression = $cronExpression;
         return $this;
     }
 
-    public function addParameter(string $parameter): self
+    /**
+     * @param $parameter
+     * @return $this
+     */
+    public function addParameter($parameter)
     {
         $this->parameters[] = $parameter;
         return $this;
@@ -48,8 +71,21 @@ class TaskConfiguration
     /**
      * @return string[]
      */
-    public function getParameters(): array
+    public function getParameters()
     {
         return $this->parameters;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isPersistHistory()
+    {
+        return $this->persistHistory;
+    }
+
+    public function persistHistory()
+    {
+        $this->persistHistory = true;
     }
 }

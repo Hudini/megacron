@@ -2,10 +2,6 @@
 
 This bundle is designed around the idea to schedule the commands within the project and therefore under VCS control.
 
-## IMPORTANT
-
-Use this version with at least symfony 4
-
 ## Installation
 
 1. Add the bundle to your project as a composer dependency:
@@ -33,23 +29,25 @@ Use this version with at least symfony 4
 composer update
 ````
 
-3. Add the bundle to bundles.php:
+3. Add the bundle to your application kernel:
 ```php
-// config/bundles.php
-return  [
+// app/AppKernel.php
+public function registerBundles()
+{
+    $bundles = [
         // ...
-        Comparon\MegacronBundle\ComparonMegacronBundle::class => [ 'all' => true],
+        new Comparon\MegacronBundle\ComparonMegacronBundle(),
     ];
+    // ...
+    return $bundles;
+}
 ```
-4. Add command to services.yaml
 
-```yaml
-    Comparon\MegacronBundle\Command\SchedulerCommand:
-        arguments:
-          $projectDir: '%kernel.project_dir%'
-        tags:
-          - 'console.command'
-```
+4. Update the database structure by doctrine.
+
+MegaCron can store for every executing Command the name, the start and the end time in 'comparon_megacron_history'. 
+If the command is broken, the end time will be NULL.
+
 
 ## Start using the bundle
 
@@ -64,30 +62,31 @@ class DemoCommand extends ContainerAwareCommand implements TaskInterface
     {
         // ...
     }
-
+    
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         // ...
     }
-
+    
     /**
      * @return TaskConfiguration[]
      */
     public function getTaskConfigurations()
     {
         $configs = [];
-
+        
         $configMonday = new TaskConfiguration();
         $configMonday->setCronExpression('* * * * 1');
         $configs[] = $configMonday;
-
+        
         $configTuesday = new TaskConfiguration();
         $configTuesday
             ->setCronExpression('0 * * * 2')
             ->setWithOverlapping(false)
+            ->persistHistory()
         ;
         $configs[] = $configTuesday;
-
+        
         return $configs;
     }
 }
